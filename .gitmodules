@@ -1,3 +1,6 @@
 [submodule "api"]
 	path = api
 	url = git@github.com:astrotify/astok-api.git
+[submodule "order-service"]
+	path = order-service
+	url = git@github.com:astrotify/astok-order-service.git
