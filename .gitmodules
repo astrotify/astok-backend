@@ -4,3 +4,6 @@
 [submodule "order-service"]
 	path = order-service
 	url = git@github.com:astrotify/astok-order-service.git
+[submodule "notification-service"]
+	path = notification-service
+	url = git@github.com:astrotify/astok-notification.git
