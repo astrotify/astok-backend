@@ -1,0 +1,67 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "rust: build notification-service",
+            "type": "shell",
+            "command": "${env:HOME}/.cargo/bin/cargo",
+            "args": [
+                "build",
+                "--bin=notification-service",
+                "--package=notification-service"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}/notification-service",
+                "env": {
+                    "PATH": "${env:HOME}/.cargo/bin:${env:PATH}"
+                }
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "problemMatcher": [
+                "$rustc"
+            ],
+            "presentation": {
+                "reveal": "silent",
+                "panel": "dedicated"
+            }
+        },
+        {
+            "label": "rust: clean notification-service",
+            "type": "shell",
+            "command": "${env:HOME}/.cargo/bin/cargo",
+            "args": [
+                "clean",
+                "--package=notification-service"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}/notification-service",
+                "env": {
+                    "PATH": "${env:HOME}/.cargo/bin:${env:PATH}"
+                }
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "rust: check notification-service",
+            "type": "shell",
+            "command": "${env:HOME}/.cargo/bin/cargo",
+            "args": [
+                "check",
+                "--package=notification-service"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}/notification-service",
+                "env": {
+                    "PATH": "${env:HOME}/.cargo/bin:${env:PATH}"
+                }
+            },
+            "problemMatcher": [
+                "$rustc"
+            ]
+        }
+    ]
+}
+

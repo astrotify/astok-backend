@@ -1,0 +1,32 @@
+{
+    // Rust/Cargo configuration
+    "rust-analyzer.cargo.path": "${env:HOME}/.cargo/bin/cargo",
+    "rust-analyzer.server.path": "${env:HOME}/.cargo/bin/rust-analyzer",
+    "rust-analyzer.cargo.env": {
+        "PATH": "${env:HOME}/.cargo/bin:${env:PATH}"
+    },
+    
+    // Terminal environment - ensures cargo is available in integrated terminal
+    "terminal.integrated.env.osx": {
+        "PATH": "${env:HOME}/.cargo/bin:${env:PATH}"
+    },
+    "terminal.integrated.env.linux": {
+        "PATH": "${env:HOME}/.cargo/bin:${env:PATH}"
+    },
+    
+    // CodeLLDB configuration
+    "lldb.executable": "/usr/bin/lldb",
+    "lldb.launch.env": {
+        "PATH": "${env:HOME}/.cargo/bin:${env:PATH}"
+    },
+    
+    // Go configuration
+    "go.toolsEnv": {
+        "PATH": "${env:HOME}/go/bin:${env:PATH}"
+    },
+    
+    // Ensure PATH is set for all processes
+    "rust-analyzer.checkOnSave.command": "cargo",
+    "rust-analyzer.cargo.buildScripts.enable": true
+}
+

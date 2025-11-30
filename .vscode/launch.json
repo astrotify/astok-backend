@@ -1,0 +1,123 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "API Gateway (NestJS)",
+            "type": "node",
+            "request": "launch",
+            "runtimeExecutable": "npm",
+            "runtimeArgs": ["run", "start:debug"],
+            "cwd": "${workspaceFolder}/api",
+            "console": "integratedTerminal",
+            "restart": true,
+            "protocol": "inspector",
+            "env": {
+                "NODE_ENV": "development"
+            },
+            "envFile": "${workspaceFolder}/api/.env",
+            "sourceMaps": true,
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "outputCapture": "std"
+        },
+        {
+            "name": "Order Service (Go)",
+            "type": "go",
+            "request": "launch",
+            "mode": "debug",
+            "program": "${workspaceFolder}/order-service/cmd/server",
+            "env": {},
+            "envFile": "${workspaceFolder}/order-service/.env",
+            "args": [],
+            "showLog": true,
+            "trace": "log",
+            "logOutput": "rpc",
+            "cwd": "${workspaceFolder}/order-service"
+        },
+        {
+            "name": "Notification Service (Rust - CodeLLDB)",
+            "type": "lldb",
+            "request": "launch",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=notification-service",
+                    "--package=notification-service"
+                ],
+                "filter": {
+                    "name": "notification-service",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}/notification-service",
+            "env": {
+                "RUST_LOG": "debug",
+                "RUST_BACKTRACE": "1",
+                "PATH": "${env:HOME}/.cargo/bin:${env:PATH}",
+                "CARGO_HOME": "${env:HOME}/.cargo"
+            },
+            "envFile": "${workspaceFolder}/notification-service/.env",
+            "sourceLanguages": ["rust"],
+            "sourceMap": {
+                "/rustc": "${env:HOME}/.rustup/toolchains"
+            }
+        },
+        {
+            "name": "Notification Service (Rust - Manual Build)",
+            "type": "lldb",
+            "request": "launch",
+            "program": "${workspaceFolder}/notification-service/target/debug/notification-service",
+            "args": [],
+            "cwd": "${workspaceFolder}/notification-service",
+            "env": {
+                "RUST_LOG": "debug",
+                "RUST_BACKTRACE": "1",
+                "PATH": "${env:HOME}/.cargo/bin:${env:PATH}"
+            },
+            "envFile": "${workspaceFolder}/notification-service/.env",
+            "sourceLanguages": ["rust"],
+            "preLaunchTask": "rust: build notification-service"
+        },
+        {
+            "name": "API Gateway (Attach)",
+            "type": "node",
+            "request": "attach",
+            "port": 9229,
+            "restart": true,
+            "cwd": "${workspaceFolder}/api",
+            "protocol": "inspector",
+            "skipFiles": [
+                "<node_internals>/**"
+            ]
+        },
+        {
+            "name": "Order Service (Attach)",
+            "type": "go",
+            "request": "attach",
+            "mode": "local",
+            "processId": 0,
+            "showLog": true
+        }
+    ],
+    "compounds": [
+        {
+            "name": "All Services",
+            "configurations": [
+                "API Gateway (NestJS)",
+                "Order Service (Go)",
+                "Notification Service (Rust - CodeLLDB)"
+            ],
+            "stopAll": true,
+            "presentation": {
+                "hidden": false,
+                "group": "",
+                "order": 1
+            }
+        }
+    ]
+}
