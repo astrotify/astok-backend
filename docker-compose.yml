@@ -1,5 +1,78 @@
 version: '3.8'
+name: astok-microservices
 services:
+  api-gateway:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    container_name: api-gateway-container
+    ports:
+      - "${API_GATEWAY_PORT}:${API_GATEWAY_PORT}"
+    environment:
+      - API_GATEWAY_PORT=${API_GATEWAY_PORT}
+      - ORDER_SERVICE_GRPC_HOST=${ORDER_SERVICE_GRPC_HOST}
+      - ORDER_SERVICE_GRPC_PORT=${ORDER_SERVICE_GRPC_PORT}
+    networks:
+      - astok-microservices-network
+
+  order-service:
+    build:
+      context: ./order-service
+      dockerfile: Dockerfile
+    container_name: order-service-container
+    ports:
+      - "${ORDER_SERVICE_GRPC_PORT}:${ORDER_SERVICE_GRPC_PORT}"
+    environment:
+      - GRPC_PORT=${ORDER_SERVICE_GRPC_PORT}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+      - KAFKA_BROKERS=${KAFKA_BROKERS}
+      - KAFKA_TOPIC_ORDER_CREATED=${KAFKA_TOPIC_ORDER_CREATED}
+      - MIGRATIONS_PATH=${ORDER_SERVICE_MIGRATIONS_PATH}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - astok-microservices-network
+
+  db:
+    image: postgres:12-alpine
+    container_name: db-container
+    environment:
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_NAME}
+    ports:
+      - "${DB_PORT}:${DB_PORT}"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - astok-microservices-network
+
+  db-migrate:
+    image: migrate/migrate
+    container_name: db-migrate
+    volumes:
+      - ./order-service/internal/database/migrations:/migrations
+    command: [
+      "-path", "/migrations",
+      "-database", "postgresql://${DB_USER}:${DB_PASSWORD}@db:${DB_PORT}/${DB_NAME}?sslmode=disable",
+      "-verbose", "up"
+    ]
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - astok-microservices-network
+
   kafka:
     image: apache/kafka:latest
     container_name: kafka-container
@@ -24,11 +97,33 @@ services:
     volumes:
       - kafka-data:/var/lib/kafka/data
     healthcheck:
-      test: [ "CMD-SHELL", "kafka-broker-api-versions --bootstrap-server localhost:9092 || exit 1" ]
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 || exit 1"]
       interval: 30s
       timeout: 10s
-      retries: 5
+      retries: 10
+      start_period: 60s
+    networks:
+      - astok-microservices-network
 
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka-ui-container
+    ports:
+      - "${KAFKA_UI_PORT}:${KAFKA_UI_PORT}"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: ${KAFKA_UI_CLUSTER_NAME}
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: ${KAFKA_UI_BOOTSTRAPSERVERS}
+    depends_on:
+      - kafka
+    networks:
+      - astok-microservices-network
+      
+networks:
+  astok-microservices-network:
+    driver: bridge
+    
 volumes:
   kafka-data:
+    driver: local
+  db-data:
     driver: local

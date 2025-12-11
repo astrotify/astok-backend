@@ -7,3 +7,6 @@
 [submodule "notification-service"]
 	path = notification-service
 	url = git@github.com:astrotify/astok-notification.git
+[submodule "auth-service"]
+	path = auth-service
+	url = git@github.com:astrotify/astok-auth-service.git
