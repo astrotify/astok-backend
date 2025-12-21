@@ -12,6 +12,8 @@ services:
       - API_GATEWAY_PORT=${API_GATEWAY_PORT}
       - ORDER_SERVICE_GRPC_HOST=${ORDER_SERVICE_GRPC_HOST}
       - ORDER_SERVICE_GRPC_PORT=${ORDER_SERVICE_GRPC_PORT}
+      - AUTH_SERVICE_GRPC_HOST=${AUTH_SERVICE_GRPC_HOST}
+      - AUTH_SERVICE_GRPC_PORT=${AUTH_SERVICE_GRPC_PORT}
     networks:
       - astok-microservices-network
 
@@ -21,16 +23,16 @@ services:
       dockerfile: Dockerfile
     container_name: order-service-container
     ports:
-      - "${ORDER_SERVICE_GRPC_PORT:-5001}:${ORDER_SERVICE_GRPC_PORT:-5001}"
+      - "${ORDER_SERVICE_GRPC_PORT}:${ORDER_SERVICE_GRPC_PORT}"
     environment:
-      - GRPC_PORT=${ORDER_SERVICE_GRPC_PORT:-5001}
+      - GRPC_PORT=${ORDER_SERVICE_GRPC_PORT}
       - DB_HOST=db
       - DB_PORT=5432
-      - DB_USER=${DB_USER:-root}
-      - DB_PASSWORD=${DB_PASSWORD:-postgres}
-      - DB_NAME=orderdb
-      - KAFKA_BROKERS=${KAFKA_BROKERS:-kafka:9092}
-      - KAFKA_TOPIC_ORDER_CREATED=${KAFKA_TOPIC_ORDER_CREATED:-order.created}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${ORDER_DB_NAME}
+      - KAFKA_BROKERS=${KAFKA_BROKERS}
+      - KAFKA_TOPIC_ORDER_CREATED=${KAFKA_TOPIC_ORDER_CREATED}
     depends_on:
       db:
         condition: service_healthy
@@ -45,17 +47,17 @@ services:
       dockerfile: Dockerfile
     container_name: auth-service-container
     ports:
-      - "${AUTH_SERVICE_GRPC_PORT:-7001}:${AUTH_SERVICE_GRPC_PORT:-7001}"
+      - "${AUTH_SERVICE_GRPC_PORT}:${AUTH_SERVICE_GRPC_PORT}"
     environment:
-      - GRPC_PORT=${AUTH_SERVICE_GRPC_PORT:-7001}
-      - DB_HOST=db
-      - DB_PORT=5432
-      - DB_USER=${DB_USER:-root}
-      - DB_PASSWORD=${DB_PASSWORD:-postgres}
-      - DB_NAME=authdb
-      - JWT_SECRET=${JWT_SECRET:-your-super-secret-jwt-key-min-32-chars}
-      - JWT_ACCESS_EXPIRY=${JWT_ACCESS_EXPIRY:-15m}
-      - JWT_REFRESH_EXPIRY=${JWT_REFRESH_EXPIRY:-168h}
+      - GRPC_PORT=${AUTH_SERVICE_GRPC_PORT}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${AUTH_DB_NAME}
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_ACCESS_EXPIRY=${JWT_ACCESS_EXPIRY}
+      - JWT_REFRESH_EXPIRY=${JWT_REFRESH_EXPIRY}
     depends_on:
       db:
         condition: service_healthy
@@ -68,16 +70,16 @@ services:
     image: postgres:12-alpine
     container_name: db-container
     environment:
-      - POSTGRES_USER=${DB_USER:-root}
-      - POSTGRES_PASSWORD=${DB_PASSWORD:-postgres}
-      - POSTGRES_DB=${DB_NAME:-postgres}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_NAME}
     ports:
-      - "${DB_PORT:-5432}:5432"
+      - "${DB_PORT}:5432"
     volumes:
       - db-data:/var/lib/postgresql/data
       - ./docker/postgres/init-databases.sh:/docker-entrypoint-initdb.d/init-databases.sh
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-root}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER}"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -91,7 +93,7 @@ services:
       - ./order-service/internal/database/migrations:/migrations
     command: [
       "-path", "/migrations",
-      "-database", "postgresql://${DB_USER:-root}:${DB_PASSWORD:-postgres}@db:5432/orderdb?sslmode=disable",
+      "-database", "postgresql://${DB_USER}:${DB_PASSWORD}@db:5432/orderdb?sslmode=disable",
       "-verbose", "up"
     ]
     depends_on:
@@ -107,7 +109,7 @@ services:
       - ./auth-service/internal/database/migrations:/migrations
     command: [
       "-path", "/migrations",
-      "-database", "postgresql://${DB_USER:-root}:${DB_PASSWORD:-postgres}@db:5432/authdb?sslmode=disable",
+      "-database", "postgresql://${DB_USER}:${DB_PASSWORD}@db:5432/authdb?sslmode=disable",
       "-verbose", "up"
     ]
     depends_on:
